@@ -1,4 +1,4 @@
-name: Build Docs PDF and Release
+name: Build Docs and Release
 
 on:
   push:
@@ -43,6 +43,13 @@ jobs:
           cd dist
           zip -r ../MaaGFL-Docs-PDF.zip .
           cd ..
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MaaGFL-Docs-PDF
+          path: MaaGFL-Docs-PDF.zip
+          retention-days: 5
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
