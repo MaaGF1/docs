@@ -28,23 +28,23 @@ theme:
 # 目录结构
 nav:
   - 首页: README.md
-  - 常见问题: docs/tutorial/FAQ.md
+  - 常见问题: tutorial/FAQ.md
   - 基础教程:
-    - 模拟器设置: docs/advanced/01_virtual_monitor.md
-    - 飞行棋: docs/tutorial/base/chess/luffberry_chess.md
+    - 模拟器设置: advanced/01_virtual_monitor.md
+    - 飞行棋: tutorial/base/chess/luffberry_chess.md
   - 资源获取:
-    - 灰域探查: docs/tutorial/resource/01_gray_zone.md
-    - 后勤拖尸: docs/tutorial/resource/02_skk_logistics.md
-    - 裂变链接: docs/tutorial/resource/03_shattered_connexion.md
-    - 炼金: docs/tutorial/resource/04_alchemy.md
-    - 基础资源: docs/tutorial/resource/05_blm.md
+    - 灰域探查: tutorial/resource/01_gray_zone.md
+    - 后勤拖尸: tutorial/resource/02_skk_logistics.md
+    - 裂变链接: tutorial/resource/03_shattered_connexion.md
+    - 炼金: tutorial/resource/04_alchemy.md
+    - 基础资源: tutorial/resource/05_blm.md
   - 练级指南:
-    - 13-4: docs/tutorial/experience/13-4/13-4.md
-    - 8-1N: docs/tutorial/experience/8-1N/8-1n.md
-    - 裂变链接练级: docs/tutorial/experience/shattered_connexion/shattered_connexion.md
+    - 13-4: tutorial/experience/13-4/13-4.md
+    - 8-1N: tutorial/experience/8-1N/8-1n.md
+    - 裂变链接练级: tutorial/experience/shattered_connexion/shattered_connexion.md
   - 救援打捞:
-    - 人形救援: docs/tutorial/rescue/dool/doll.md
-    - 装备打捞: docs/tutorial/rescue/equipment/equipment.md
+    - 人形救援: tutorial/rescue/dool/doll.md
+    - 装备打捞: tutorial/rescue/equipment/equipment.md
 
 markdown_extensions:
   - admonition
