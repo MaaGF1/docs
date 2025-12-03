@@ -5,18 +5,31 @@ repo_url: https://github.com/MaaGF1/MaaGF1
 repo_name: MaaGF1/MaaGF1
 edit_uri: https://github.com/MaaGF1/docs/edit/main/
 
+# 自定义CSS
+extra_css:
+  - stylesheets/extra.css
+
 theme:
   name: material
   language: zh
+  logo: assets/pic/logo_256.png
+  favicon: assets/pic/logo_256.png
+  # 主题配色
   palette: 
+    # 1. 浅色模式
     - scheme: default
+      primary: deep-orange
+      accent: deep-orange
       toggle:
-        icon: material/brightness-7 
-        name: Switch to dark mode
+        icon: material/weather-sunny
+        name: 黄区配色 (Dark Mode)
+    # 2. 深色模式
     - scheme: slate
+      primary: deep-orange
+      accent: deep-orange
       toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+        icon: material/weather-night
+        name: 白区配色 (Light Mode)
   features:
     - navigation.tabs
     - navigation.sections
@@ -24,6 +37,12 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MaaGF1/MaaGF1
+      name: GitHub 仓库
 
 # 目录结构
 nav:
