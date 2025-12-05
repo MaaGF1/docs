@@ -1,5 +1,7 @@
 # MaaGF1 项目文档
 
+![欢迎](https://img.shields.io/badge/Welcome-to_MaaGF1-blue)
+
 欢迎来到 MaaGF1 的官方文档。
 
 ## 一、最新版本状态
