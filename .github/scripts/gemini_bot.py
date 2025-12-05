@@ -302,7 +302,7 @@ def main():
         if final_response.intent == Intent.CHAT:
             # 聊天模式：直接更新评论为最终回答
             final_msg = f"""
-💠 **Dandelion Protocol**
+💠 **OGAS Protocol**
 
 > {user_request}
 
@@ -325,9 +325,9 @@ def main():
             gh_client.update_comment(get_status_msg("Writing data...", "正在覆写本地文件..."))
 
             # Git 操作
-            run_git_cmd('git config --global user.name "github-actions[bot]"')
-            run_git_cmd('git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"')
-            
+            run_git_cmd('git config --global user.name "Dandelion"')
+            run_git_cmd('git config --global user.email "xjt.include@gmail.com"')
+
             branch_name = f"dandelion/patch-{ISSUE_NUMBER}-{int(time.time())}"
             run_git_cmd(f"git checkout -b {branch_name}")
             
