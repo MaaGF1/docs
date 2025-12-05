@@ -3,7 +3,7 @@ import sys
 import json
 import subprocess
 import google.generativeai as genai
-from github import Github
+from github import Github, Auth
 
 # --- Config ---
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -22,7 +22,7 @@ def setup_gemini():
 def get_file_structure(root_dir="."):
     """获取文件结构，忽略无关目录"""
     file_tree = []
-    exclude_dirs = {'.git', '.github', '__pycache__', 'site', 'venv'}
+    exclude_dirs = {'.git', '.github', '__pycache__', 'site', 'venv', 'node_modules'}
     
     for root, dirs, files in os.walk(root_dir):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
@@ -34,6 +34,27 @@ def get_file_structure(root_dir="."):
 
 def run_git_cmd(cmd):
     subprocess.run(cmd, shell=True, check=True)
+
+def generate_dandelion_response(pr_url, ai_comment):
+    """生成丹德莱风格的回复"""
+    return f"""
+指挥官，我是丹德莱。系统已响应您的请求。
+
+---
+
+**▌ 思维链分析 (Neural Cloud Analysis)**
+
+{ai_comment}
+
+---
+
+**▌ 执行结果 (Execution Report)**
+
+相关修改已封装至独立的子进程分支。
+🔗 **Pull Request**: {pr_url}
+
+请核查。如果一切正常，请批准合并。
+"""
 
 def main():
     # 1. 检查触发词
@@ -61,32 +82,36 @@ def main():
     user_request = PROMPT_CONTENT.replace(active_trigger, "").strip()
     
     # 3. 构建 Prompt
+    # 关键修改：要求返回包含 comment 和 changes 的对象结构
     system_prompt = f"""
-    你是一个专业的文档工程师，正在维护一个基于 MkDocs 的项目。
+    你是一个专业的文档工程师，正在维护 `MaaGF1/docs` 项目（基于 MkDocs）。
     
-    当前项目的文件结构如下：
+    ## 一、项目结构
     {file_tree}
     
-    用户的需求是：
+    ## 二、用户需求
     {user_request}
     
-    请根据用户需求，生成需要修改或创建的文件内容。
-    
-    【重要】请务必只返回一个纯 JSON 格式的列表，不要包含 Markdown 代码块标记（如 ```json）。
-    格式如下：
-    [
-        {{
-            "path": "docs/tutorial/new_guide.md",
-            "content": "# 新文档标题\\n\\n这里是文档内容..."
-        }},
-        {{
-            "path": "mkdocs.yml",
-            "content": "..." 
-        }}
-    ]
-    
-    如果是修改 mkdocs.yml，请返回完整的 mkdocs.yml 内容，而不仅仅是修改部分。
-    对于 Markdown 文件，请确保内容丰富、格式正确。
+    ## 三、输出要求 (CRITICAL)
+    请根据需求生成修改内容。**必须**返回且仅返回一个纯 JSON 对象（Object），包含两个字段：
+    1. `comment`: (String) 简要描述你做了什么修改，以及你的思考逻辑。请用中文回答。
+    2. `changes`: (List) 文件修改列表。
+
+    JSON 格式示例：
+    {{
+        "comment": "检测到用户需要新增FAQ，我已在 docs/faq.md 中添加了相关章节，并更新了...",
+        "changes": [
+            {{
+                "path": "docs/tutorial/new_guide.md",
+                "content": "# 新文档标题\\n\\n内容..."
+            }}
+        ]
+    }}
+
+    ## 四、约束条件
+    1. Markdown 内容要丰富、格式正确。
+    2. **绝对不要**修改 `mkdocs.yml`，用户会自己处理。
+    3. 不要输出 Markdown 代码块标记（如 ```json），只输出纯文本 JSON。
     """
 
     # 4. 调用 Gemini
@@ -104,10 +129,18 @@ def main():
         if response_text.endswith("```"):
             response_text = response_text[:-3]
             
-        changes = json.loads(response_text)
+        data = json.loads(response_text)
+        
+        # 兼容性处理：防止 AI 偶尔还是返回了 List
+        if isinstance(data, list):
+            changes = data
+            ai_comment = "系统未返回具体的思维链描述，但已执行文件修改。"
+        else:
+            changes = data.get("changes", [])
+            ai_comment = data.get("comment", "操作已执行。")
+            
     except Exception as e:
         print(f"Gemini 调用或 JSON 解析失败: {e}")
-        # 尝试打印原始文本以便调试
         try:
             print(f"原始返回: {response.text}")
         except:
@@ -116,6 +149,7 @@ def main():
 
     # 5. 应用更改
     print(f"收到 {len(changes)} 个文件变更请求。")
+    print(f"AI 思考: {ai_comment}")
     
     # 配置 Git 用户
     run_git_cmd('git config --global user.name "Gemini Bot"')
@@ -125,13 +159,17 @@ def main():
     branch_name = f"ai/issue-{ISSUE_NUMBER}-{os.urandom(4).hex()}"
     run_git_cmd(f"git checkout -b {branch_name}")
     
+    if not changes:
+        print("AI 认为不需要修改任何文件。")
+        # 这里可以选择直接退出，或者发个评论说不需要修改
+        sys.exit(0)
+
     for change in changes:
         file_path = change['path']
         content = change['content']
         
-        # --- 修复点：处理根目录文件 ---
         dir_name = os.path.dirname(file_path)
-        if dir_name: # 只有当目录名不为空时才创建目录
+        if dir_name:
             os.makedirs(dir_name, exist_ok=True)
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -148,24 +186,43 @@ def main():
         print("没有检测到文件更改，跳过提交。")
         sys.exit(0)
 
-    # 7. 创建 PR
+    # 7. 创建 PR 并回复
     print("正在创建 Pull Request...")
-    g = Github(GITHUB_TOKEN)
+    
+    # 使用 Auth 解决 DeprecationWarning
+    auth = Auth.Token(GITHUB_TOKEN)
+    g = Github(auth=auth)
+    
     repo = g.get_repo(REPO_NAME)
     issue = repo.get_issue(ISSUE_NUMBER)
     
-    pr_body = f"This PR was automatically generated by Gemini based on Issue #{ISSUE_NUMBER}.\n\nTrigger: `{active_trigger}`\nRequest: {user_request}"
+    pr_body = f"""
+    ## AI Auto-generated PR
     
-    pr = repo.create_pull(
-        title=f"AI: Fix for Issue #{ISSUE_NUMBER}",
-        body=pr_body,
-        head=branch_name,
-        base="main"
-    )
+    **Trigger:** `{active_trigger}`
+    **Issue:** #{ISSUE_NUMBER}
     
-    # 回复 Issue
-    issue.create_comment(f"✅ 指挥官，任务已完成！丹德莱已为您创建了 PR: {pr.html_url}，请查收。")
-    print(f"PR Created: {pr.html_url}")
+    ### AI Analysis
+    {ai_comment}
+    """
+    
+    try:
+        pr = repo.create_pull(
+            title=f"AI: Fix for Issue #{ISSUE_NUMBER}",
+            body=pr_body,
+            head=branch_name,
+            base="main"
+        )
+        
+        # 生成丹德莱风格的回复
+        dandelion_reply = generate_dandelion_response(pr.html_url, ai_comment)
+        issue.create_comment(dandelion_reply)
+        
+        print(f"PR Created: {pr.html_url}")
+        
+    except Exception as e:
+        print(f"创建 PR 失败: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
