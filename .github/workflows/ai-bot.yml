@@ -13,8 +13,11 @@ permissions:
 
 jobs:
   gemini-code:
-    # 只有当评论包含 /gemini 或者新 Issue 正文包含 /gemini 时才运行
-    if: contains(github.event.comment.body, '/gemini') || (github.event_name == 'issues' && contains(github.event.issue.body, '/gemini'))
+    # 1. 如果是评论触发 (issue_comment)，检查评论内容是否包含 /gemini 或 /丹德莱
+    # 2. 如果是 Issue 创建触发 (issues)，检查 Issue 正文是否包含 /gemini 或 /丹德莱
+    if: >
+      (github.event_name == 'issue_comment' && (contains(github.event.comment.body, '/gemini') || contains(github.event.comment.body, '/丹德莱'))) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '/gemini') || contains(github.event.issue.body, '/丹德莱')))
     runs-on: ubuntu-latest
     
     steps:
@@ -37,6 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_NAME: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          # 如果是评论触发取评论，否则取 Issue 正文
           PROMPT_CONTENT: ${{ github.event.comment.body || github.event.issue.body }}
         run: |
           python .github/scripts/gemini_bot.py
