@@ -19,8 +19,8 @@ def setup_gemini():
     genai.configure(api_key=GEMINI_API_KEY)
     return genai.GenerativeModel('gemini-2.5-flash')
 
+# 忽略无关目录
 def get_file_structure(root_dir="."):
-    """获取文件结构，忽略无关目录"""
     file_tree = []
     exclude_dirs = {'.git', '.github', '__pycache__', 'site', 'venv', 'node_modules'}
     
@@ -35,25 +35,22 @@ def get_file_structure(root_dir="."):
 def run_git_cmd(cmd):
     subprocess.run(cmd, shell=True, check=True)
 
+# 丹德莱风格的回复
 def generate_dandelion_response(pr_url, ai_comment):
-    """生成丹德莱风格的回复"""
     return f"""
-指挥官，我是丹德莱。系统已响应您的请求。
+指挥官，任务完成。丹德莱已为您创建如下内容。
 
----
-
-**▌ 思维链分析 (Neural Cloud Analysis)**
+**▌ 云图分析 (Neural Cloud Analysis)**
 
 {ai_comment}
 
----
-
 **▌ 执行结果 (Execution Report)**
 
-相关修改已封装至独立的子进程分支。
-🔗 **Pull Request**: {pr_url}
+相关修改已封装至独立的子进程分支：
 
-请核查。如果一切正常，请批准合并。
+**Pull Request**: {pr_url}
+
+请核查。
 """
 
 def main():
@@ -82,9 +79,8 @@ def main():
     user_request = PROMPT_CONTENT.replace(active_trigger, "").strip()
     
     # 3. 构建 Prompt
-    # 关键修改：要求返回包含 comment 和 changes 的对象结构
     system_prompt = f"""
-    你是一个专业的文档工程师，正在维护 `MaaGF1/docs` 项目（基于 MkDocs）。
+    你是一个专业的文档工程师，正在管理一个Github开源项目，它是`MaaGF1/docs`是一个基于MkDocs的`MaaGF1/MaaGF1`专属文档仓库。
     
     ## 一、项目结构
     {file_tree}
@@ -131,7 +127,7 @@ def main():
             
         data = json.loads(response_text)
         
-        # 兼容性处理：防止 AI 偶尔还是返回了 List
+        # 防止 AI 偶尔还是返回了 List
         if isinstance(data, list):
             changes = data
             ai_comment = "系统未返回具体的思维链描述，但已执行文件修改。"
@@ -161,7 +157,6 @@ def main():
     
     if not changes:
         print("AI 认为不需要修改任何文件。")
-        # 这里可以选择直接退出，或者发个评论说不需要修改
         sys.exit(0)
 
     for change in changes:
