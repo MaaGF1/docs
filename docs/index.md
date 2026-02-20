@@ -13,5 +13,7 @@
 
 1. [下载并运行](./tutorial/begin/下载并运行.md)
 2. [13-4](./tutorial/experience/13-4.md)
-3. [捡垃圾](./tutorial/resource/捡垃圾.md)
-4. [零元购](./tutorial/resource/零元购.md)
+3. [零元购](./tutorial/resource/零元购.md)
+4. [打灰-刷彩蛋](./tutorial/resource/自动打灰.md)
+5. [打灰-炸山](./tutorial/resource/DLZ版自动灰域.md)
+6. [循演战役](./tutorial/rescue/循演战役.md)
