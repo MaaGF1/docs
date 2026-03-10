@@ -49,6 +49,7 @@ nav:
   - 首页: index.md
   - 基础知识:
     - 下载并运行: tutorial/begin/下载并运行.md
+    - 下载并运行-2.0: tutorial/begin/下载并运行_v2.md
     - 常见问题: tutorial/begin/FAQ.md
   - 资源获取:
     - 兵棋挂机: tutorial/base/兵棋挂机.md
